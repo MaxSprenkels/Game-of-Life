@@ -23,23 +23,13 @@ function createGrid(rows, cols) {
     }
     return grid;
 }
-
-function startColorChange(cell) {
-    let isChanging = cell.dataset.isChanging === 'true';
-    
-    if (!isChanging) {
-        cell.dataset.isChanging = 'true';
-        
-        const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
-        let colorIndex = 0;
-
-        cell.colorChangeInterval = setInterval(() => {
-            cell.style.backgroundColor = colors[colorIndex];
-            colorIndex = (colorIndex + 1) % colors.length;
-        }, 500);
-    } else {
-        clearInterval(cell.colorChangeInterval);
-        cell.style.backgroundColor = 'white';
-        cell.dataset.isChanging = 'false';
-    }
-}
+const button = document.getElementById("startStopButton");
+        button.addEventListener("click", function() {
+            if (button.textContent === "Start") {
+                button.textContent = "Stop";
+                button.classList.add("stop");
+            } else {
+                button.textContent = "Start";
+                button.classList.remove("stop");
+            }
+        });
