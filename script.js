@@ -1,4 +1,5 @@
 const gridContainer = document.getElementById('grid');
+const siuuSound = document.getElementById('siuuSound'); // Get the audio element
 const rows = 50;
 const cols = 50;
 let grid = createGrid(rows, cols);
@@ -11,9 +12,10 @@ function createGrid(rows, cols) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             
-            // Add event listener for click to start color change
+            // Add event listener for click to start color change and play sound
             cell.addEventListener('click', () => {
                 startColorChange(cell);
+                playSiuuSound();
             });
             
             gridContainer.appendChild(cell);
@@ -42,4 +44,9 @@ function startColorChange(cell) {
         cell.style.backgroundColor = 'white';
         cell.dataset.isChanging = 'false';
     }
+}
+
+function playSiuuSound() {
+    siuuSound.currentTime = 0; // Rewind to the start
+    siuuSound.play(); // Play the sound
 }
