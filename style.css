@@ -14,12 +14,13 @@ body {
 }
 
 .cell {
-    width: 15px;
-    height: 15px;
-    background-color: rgba(255, 255, 255, 0.3); /* 30% opacity for transparency */
-    border: 2px solid rgba(0, 0, 0, 0.3); /* Transparent border */
-    cursor: pointer;
-}
+        width: 15px;
+        height: 15px;
+        background-color: rgba(255, 255, 255, 0.3); /* Dead cell default color */
+        border: 2px solid rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+    }
+
 .buttons {
     .buttons {
         display: flex;
