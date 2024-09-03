@@ -5,14 +5,24 @@ body, html {
     height: 100%;
     overflow: hidden; /* Disable scrolling */
     font-family: Arial, sans-serif;
-    background-image: url('komop.jpg');
+    background-image: url('img/komop.jpg');
     background-size: cover; /* Ensures the image covers the entire page */
     background-repeat: no-repeat; /* Prevents the image from repeating */
     background-position: center; /* Centers the image */
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* Stack elements vertically */
     align-items: center;
     position: relative;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 0px 0;
+    position: fixed;
+    padding: 10px;
+    border-radius: 10px;
 }
 
 #grid {
@@ -21,25 +31,15 @@ body, html {
     grid-template-rows: repeat(50, 15px);
     gap: 1px;
     background-color: rgba(0, 0, 0, 0); /* Fully transparent grid background */
+    margin-top: 60px; /* Space to prevent the grid from overlapping with the buttons */
 }
 
 .cell {
-        width: 15px;
-        height: 15px;
-        background-color: rgba(255, 255, 255, 0.3); /* Dead cell default color */
-        border: 2px solid rgba(0, 0, 0, 0.3);
-        cursor: pointer;
-    }
-
-.buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 20px 0;
-}
-
-#fullscreen-btn:hover {
-    background-color: #0056b3;
+    width: 15px;
+    height: 15px;
+    background-color: rgba(255, 255, 255, 0.3); /* Dead cell default color */
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    cursor: pointer;
 }
 
 button {
@@ -63,5 +63,4 @@ button {
     word-break: break-word;
     border: 0;
     margin: 0;
-    margin-bottom: 10%;
 }
