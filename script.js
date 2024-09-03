@@ -1,4 +1,5 @@
 const gridContainer = document.getElementById('grid');
+const siuuSound = document.getElementById('siuuSound'); // Get the audio element
 const rows = 50;
 const cols = 50;
 let grid = createGrid(rows, cols);
@@ -11,9 +12,10 @@ function createGrid(rows, cols) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             
-            // Add event listener for click to start color change
+            // Add event listener for click to start color change and play sound
             cell.addEventListener('click', () => {
                 startColorChange(cell);
+                playSiuuSound();
             });
             
             gridContainer.appendChild(cell);
@@ -23,13 +25,28 @@ function createGrid(rows, cols) {
     }
     return grid;
 }
-const button = document.getElementById("startStopButton");
-        button.addEventListener("click", function() {
-            if (button.textContent === "Start") {
-                button.textContent = "Stop";
-                button.classList.add("stop");
-            } else {
-                button.textContent = "Start";
-                button.classList.remove("stop");
-            }
-        });
+
+function startColorChange(cell) {
+    let isChanging = cell.dataset.isChanging === 'true';
+    
+    if (!isChanging) {
+        cell.dataset.isChanging = 'true';
+        
+        const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
+        let colorIndex = 0;
+
+        cell.colorChangeInterval = setInterval(() => {
+            cell.style.backgroundColor = colors[colorIndex];
+            colorIndex = (colorIndex + 1) % colors.length;
+        }, 500);
+    } else {
+        clearInterval(cell.colorChangeInterval);
+        cell.style.backgroundColor = 'white';
+        cell.dataset.isChanging = 'false';
+    }
+}
+
+function playSiuuSound() {
+    siuuSound.currentTime = 0; // Rewind to the start
+    siuuSound.play(); // Play the sound
+}
