@@ -1,3 +1,14 @@
+const button = document.getElementById("startStopButton");
+        button.addEventListener("click", function() {
+            if (button.textContent === "Start") {
+                button.textContent = "Stop";
+                button.classList.add("stop");
+            } else {
+                button.textContent = "Start";
+                button.classList.remove("stop");
+            }
+        });
+
 const gridContainer = document.getElementById('grid');
 const siuuSound = document.getElementById('siuuSound'); // Get the audio element
 const fullscreenBtn = document.getElementById('fullscreen-btn'); // Get the fullscreen button
