@@ -10,8 +10,16 @@ function createGrid(rows, cols) {
         for (let col = 0; col < cols; col++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
+            
+            // Add event listener for click to start color change
+            cell.addEventListener('click', () => {
+                startColorChange(cell);
+            });
+            
             gridContainer.appendChild(cell);
+            gridRow.push(cell);
         }
+        grid.push(gridRow);
     }
     return grid;
 }
