@@ -71,9 +71,6 @@ function toggleCell(cell) {
     } else {
         cell.dataset.alive = 'true';
         startColorChange(cell); // Start color change for living cell
-        clearInterval(cell.colorChangeInterval);
-        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-        cell.dataset.isChanging = 'false';
     }
 }
 
