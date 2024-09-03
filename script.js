@@ -15,3 +15,13 @@ function createGrid(rows, cols) {
     }
     return grid;
 }
+const button = document.getElementById("startStopButton");
+        button.addEventListener("click", function() {
+            if (button.textContent === "Start") {
+                button.textContent = "Stop";
+                button.classList.add("stop");
+            } else {
+                button.textContent = "Start";
+                button.classList.remove("stop");
+            }
+        });
