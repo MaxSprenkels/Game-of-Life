@@ -52,7 +52,7 @@ function startColorChange(cell) {
         }, 500);
     } else {
         clearInterval(cell.colorChangeInterval);
-        cell.style.backgroundColor = 'white';
+        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
         cell.dataset.isChanging = 'false';
     }
 }
