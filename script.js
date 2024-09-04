@@ -2,7 +2,8 @@ const button = document.getElementById("startStopButton");
 const gridContainer = document.getElementById('grid');
 const siuuSound = document.getElementById('siuuSound');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
-const resetButton = document.querySelectorAll('button')[2]; // Select the third button (Reset)
+const resetButton = document.getElementById('resetButton');
+const randomButton = document.getElementById('randomButton');
 const rows = 50;
 const cols = 50;
 let grid = createGrid(rows, cols);
@@ -21,20 +22,27 @@ button.addEventListener("click", function() {
     }
 });
 
-// Event listener for the reset button
 resetButton.addEventListener("click", function() {
     resetGame();
+});
+
+randomButton.addEventListener("click", function() {
+    if (!isRunning) {
+        randomizeGrid();
+    }
 });
 
 // Function to create the grid
 function createGrid(rows, cols) {
     const grid = [];
+    gridContainer.innerHTML = ''; // Clear any existing cells in the container
     for (let row = 0; row < rows; row++) {
         const gridRow = [];
         for (let col = 0; col < cols; col++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             cell.dataset.alive = 'false'; // All cells start dead
+            cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Initial background color for dead cells
 
             cell.addEventListener('click', () => {
                 toggleCell(cell);
@@ -51,12 +59,28 @@ function createGrid(rows, cols) {
 
 // Function to reset the game
 function resetGame() {
-    stopGame(); // Stop the game if running
+    stopGame();
     grid.forEach(row => {
         row.forEach(cell => {
             cell.dataset.alive = 'false';
-            stopColorChange(cell); // Stop color change
-            cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Reset cell color to default
+            stopColorChange(cell);
+            cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+        });
+    });
+}
+
+// Function to randomize the grid
+function randomizeGrid() {
+    grid.forEach(row => {
+        row.forEach(cell => {
+            const isAlive = Math.random() > 0.5;
+            cell.dataset.alive = isAlive ? 'true' : 'false';
+            if (isAlive) {
+                startColorChange(cell);
+            } else {
+                stopColorChange(cell);
+                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            }
         });
     });
 }
@@ -66,18 +90,32 @@ function toggleCell(cell) {
     const isAlive = cell.dataset.alive === 'true';
     if (isAlive) {
         cell.dataset.alive = 'false';
-        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Set back to default color
+        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Reset to default color for dead cells
         stopColorChange(cell);
     } else {
         cell.dataset.alive = 'true';
-        startColorChange(cell); // Start color change for living cell
+        startColorChange(cell);
     }
 }
+let animationFrameId;
 
+function startGame() {
+    isRunning = true;
+    runGame();
+}
+function runGame() {
+    nextGeneration();
+    animationFrameId = requestAnimationFrame(runGame);
+}
+
+function stopGame() {
+    isRunning = false;
+    cancelAnimationFrame(animationFrameId);
+}
 // Start the game
 function startGame() {
     isRunning = true;
-    interval = setInterval(nextGeneration, 500); // Update every 500ms
+    interval = setInterval(nextGeneration, 1000); // Update every 500ms
 }
 
 // Stop the game
@@ -86,36 +124,25 @@ function stopGame() {
     clearInterval(interval);
 }
 
-// Function to compute the next generation
 function nextGeneration() {
     const nextGridState = createNextGridState();
     updateGrid(nextGridState);
 }
 
-// Create the next grid state based on the current state
+// Correct function to calculate the next grid state
 function createNextGridState() {
     const nextGridState = [];
     for (let row = 0; row < rows; row++) {
         nextGridState[row] = [];
         for (let col = 0; col < cols; col++) {
-            const cell = grid[row][col];
-            const isAlive = cell.dataset.alive === 'true';
+            const isAlive = grid[row][col].dataset.alive === 'true';
             const neighbors = countAliveNeighbors(row, col);
 
+            // Apply Game of Life rules
             if (isAlive) {
-                // Apply rules for living cells
-                if (neighbors === 2 || neighbors === 3) {
-                    nextGridState[row][col] = true; // Stays alive
-                } else {
-                    nextGridState[row][col] = false; // Dies
-                }
+                nextGridState[row][col] = (neighbors === 2 || neighbors === 3);
             } else {
-                // Apply rules for dead cells
-                if (neighbors === 3) {
-                    nextGridState[row][col] = true; // Becomes alive
-                } else {
-                    nextGridState[row][col] = false; // Stays dead
-                }
+                nextGridState[row][col] = (neighbors === 3);
             }
         }
     }
@@ -130,17 +157,13 @@ function updateGrid(nextGridState) {
             const shouldBeAlive = nextGridState[row][col];
             const isAlive = cell.dataset.alive === 'true';
 
-            if (shouldBeAlive) {
-                if (!isAlive) {
-                    cell.dataset.alive = 'true';
-                    startColorChange(cell); // Start color change for new live cells
-                }
-            } else {
-                if (isAlive) {
-                    cell.dataset.alive = 'false';
-                    stopColorChange(cell); // Stop color change for dead cells
-                    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Dead cell color
-                }
+            if (shouldBeAlive && !isAlive) {
+                cell.dataset.alive = 'true';
+                startColorChange(cell);
+            } else if (!shouldBeAlive && isAlive) {
+                cell.dataset.alive = 'false';
+                stopColorChange(cell);
+                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Background color for dead cells
             }
         }
     }
@@ -175,22 +198,24 @@ function startColorChange(cell) {
     const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
     let colorIndex = 0;
 
+    // Verlaag de snelheid van kleurverandering
     cell.colorChangeInterval = setInterval(() => {
         cell.style.backgroundColor = colors[colorIndex];
         colorIndex = (colorIndex + 1) % colors.length;
-    }, 500);
+    }, 200); // 1 seconde per kleurverandering
 }
+
 
 // Stop the color-changing effect for a cell
 function stopColorChange(cell) {
     clearInterval(cell.colorChangeInterval);
-    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Set back to default color
+    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Restore the original background color
 }
 
 // Play sound when a cell is toggled
 function playSiuuSound() {
-    siuuSound.currentTime = 0; // Rewind to the start
-    siuuSound.play(); // Play the sound
+    siuuSound.currentTime = 0;
+    siuuSound.play();
 }
 
 // Toggle fullscreen mode
