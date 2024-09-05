@@ -7,26 +7,28 @@ const savePatternButton = document.getElementById('savePatternButton');
 const loadPatternButton = document.getElementById('loadPatternButton');
 const patternNameInput = document.getElementById('patternName');
 const patternSelect = document.getElementById('patternSelect');
-const randomButton = document.getElementById('randomButton');
+const randomButton = document.getElementById('randomButton');   
 const rows = 50;
 const cols = 50;
-let grid = createGrid(rows, cols);
+
+let currentGrid = createGrid(rows, cols);  // Grid voor de huidige staat
+let nextGrid = createGrid(rows, cols);     // Grid voor de volgende staat
 let interval;
 let isRunning = false;
 
-// Fullscreen check
+// Controleer of fullscreen is ingeschakeld
 function isFullscreen() {
     return !!document.fullscreenElement;
 }
 
-// Enter fullscreen mode
+// Volledig scherm activeren
 function enterFullscreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
     }
 }
 
-// Exit fullscreen mode
+// Volledig scherm verlaten
 function exitFullscreen() {
     if (document.fullscreenElement) {
         document.exitFullscreen();
@@ -55,7 +57,6 @@ randomButton.addEventListener("click", function() {
     }
 });
 
-
 savePatternButton.addEventListener("click", function() {
     savePattern();
 });
@@ -64,14 +65,14 @@ loadPatternButton.addEventListener("click", function() {
     loadPattern();
 });
 
-// Function to create the grid
+// Grid creëren
 function createGrid(rows, cols) {
     const grid = [];
     for (let row = 0; row < rows; row++) {
         const gridRow = [];
         for (let col = 0; col < cols; col++) {
             const cell = document.createElement('div');
-            cell.classList.add('cell');
+            cell.classList.add('cell', 'cell-dead');
             cell.dataset.alive = 'false';
 
             cell.addEventListener('click', () => {
@@ -87,113 +88,115 @@ function createGrid(rows, cols) {
     return grid;
 }
 
-// Function to reset the game
+// Reset het spel
 function resetGame() {
     stopGame();
-    grid.forEach(row => {
+    currentGrid.forEach(row => {
         row.forEach(cell => {
             cell.dataset.alive = 'false';
             stopColorChange(cell);
-            cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            cell.classList.remove('cell-alive');
+            cell.classList.add('cell-dead');
         });
     });
 }
 
-// Function to toggle the cell's alive state
+// Wissel de staat van de cel
 function toggleCell(cell) {
-    const isAlive = cell.dataset.alive === 'true';
-    if (isAlive) {
+    if (cell.dataset.alive === 'true') {
         cell.dataset.alive = 'false';
-        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+        cell.classList.remove('cell-alive');
+        cell.classList.add('cell-dead');
         stopColorChange(cell);
     } else {
         cell.dataset.alive = 'true';
+        cell.classList.remove('cell-dead');
+        cell.classList.add('cell-alive');
         startColorChange(cell);
     }
 }
 
-// Function to randomize the grid
+// Grid randomiseren
 function randomizeGrid() {
-    grid.forEach(row => {
+    currentGrid.forEach(row => {
         row.forEach(cell => {
             const isAlive = Math.random() > 0.5;
             cell.dataset.alive = isAlive ? 'true' : 'false';
             if (isAlive) {
                 startColorChange(cell);
+                cell.classList.add('cell-alive');
+                cell.classList.remove('cell-dead');
             } else {
                 stopColorChange(cell);
-                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                cell.classList.add('cell-dead');
+                cell.classList.remove('cell-alive');
             }
         });
     });
 }
 
-
+// Start het spel
 function startGame() {
     isRunning = true;
-    interval = setInterval(nextGeneration, 500);
+    interval = setInterval(nextGeneration, 850); // Verlaagde interval voor snellere updates
 }
 
+// Stop het spel
 function stopGame() {
     isRunning = false;
     clearInterval(interval);
 }
 
+// Bereken de volgende generatie
 function nextGeneration() {
     const nextGridState = createNextGridState();
-    updateGrid(nextGridState);
+    applyNextGridState(nextGridState);
 }
 
+// Creëer de volgende gridstaat
 function createNextGridState() {
     const nextGridState = [];
+
     for (let row = 0; row < rows; row++) {
         nextGridState[row] = [];
         for (let col = 0; col < cols; col++) {
-            const cell = grid[row][col];
-            const isAlive = cell.dataset.alive === 'true';
+            const isAlive = currentGrid[row][col].dataset.alive === 'true';
             const neighbors = countAliveNeighbors(row, col);
 
-            if (isAlive) {
-                if (neighbors === 2 || neighbors === 3) {
-                    nextGridState[row][col] = true;
-                } else {
-                    nextGridState[row][col] = false;
-                }
-            } else {
-                if (neighbors === 3) {
-                    nextGridState[row][col] = true;
-                } else {
-                    nextGridState[row][col] = false;
-                }
-            }
+            nextGridState[row][col] = (isAlive && (neighbors === 2 || neighbors === 3)) || (!isAlive && neighbors === 3);
         }
     }
+
     return nextGridState;
 }
 
-function updateGrid(nextGridState) {
+// Pas de volgende gridstaat toe
+function applyNextGridState(nextGridState) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-            const cell = grid[row][col];
+            const cell = currentGrid[row][col];
             const shouldBeAlive = nextGridState[row][col];
-            const isAlive = cell.dataset.alive === 'true';
 
             if (shouldBeAlive) {
-                if (!isAlive) {
+                if (cell.dataset.alive === 'false') {
                     cell.dataset.alive = 'true';
+                    cell.classList.remove('cell-dead');
+                    cell.classList.add('cell-alive');
                     startColorChange(cell);
                 }
             } else {
-                if (isAlive) {
+                if (cell.dataset.alive === 'true') {
                     cell.dataset.alive = 'false';
+                    cell.classList.remove('cell-alive');
+                    cell.classList.add('cell-dead');
                     stopColorChange(cell);
-                    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
                 }
             }
         }
     }
 }
 
+// Tel het aantal levende buren
 function countAliveNeighbors(row, col) {
     const directions = [
         [-1, -1], [-1, 0], [-1, 1],
@@ -207,7 +210,7 @@ function countAliveNeighbors(row, col) {
         const newCol = col + dy;
 
         if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-            const neighbor = grid[newRow][newCol];
+            const neighbor = currentGrid[newRow][newCol];
             if (neighbor.dataset.alive === 'true') {
                 count++;
             }
@@ -217,6 +220,7 @@ function countAliveNeighbors(row, col) {
     return count;
 }
 
+// Start de kleuraanpassing
 function startColorChange(cell) {
     const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
     let colorIndex = 0;
@@ -224,19 +228,22 @@ function startColorChange(cell) {
     cell.colorChangeInterval = setInterval(() => {
         cell.style.backgroundColor = colors[colorIndex];
         colorIndex = (colorIndex + 1) % colors.length;
-    }, 500);
+    }, 150);
 }
 
+// Stop de kleuraanpassing
 function stopColorChange(cell) {
     clearInterval(cell.colorChangeInterval);
-    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+    cell.style.backgroundColor = '';  // Reset naar CSS default
 }
 
+// Speel geluid af
 function playSiuuSound() {
     siuuSound.currentTime = 0;
     siuuSound.play();
 }
 
+// Fullscreen functionaliteit
 fullscreenBtn.addEventListener('click', () => {
     if (!isFullscreen()) {
         enterFullscreen();
@@ -245,6 +252,7 @@ fullscreenBtn.addEventListener('click', () => {
     }
 });
 
+// Patroon opslaan
 function savePattern() {
     const patternName = patternNameInput.value.trim();
     if (!patternName) {
@@ -252,13 +260,12 @@ function savePattern() {
         return;
     }
 
-    const gridState = grid.map(row => row.map(cell => cell.dataset.alive === 'true'));
+    const gridState = currentGrid.map(row => row.map(cell => cell.dataset.alive === 'true'));
     const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
     
     savedPatterns[patternName] = gridState;
     localStorage.setItem('savedPatterns', JSON.stringify(savedPatterns));
 
-    // Check and maintain fullscreen mode
     if (isFullscreen()) {
         enterFullscreen();
     }
@@ -267,6 +274,7 @@ function savePattern() {
     alert(`Pattern "${patternName}" saved!`);
 }
 
+// Patroon laden
 function loadPattern() {
     const patternName = patternSelect.value;
     if (!patternName) {
@@ -278,11 +286,12 @@ function loadPattern() {
     const pattern = savedPatterns[patternName];
 
     if (pattern) {
-        grid.forEach((row, rowIndex) => {
+        currentGrid.forEach((row, rowIndex) => {
             row.forEach((cell, colIndex) => {
                 const shouldBeAlive = pattern[rowIndex][colIndex];
                 cell.dataset.alive = shouldBeAlive ? 'true' : 'false';
-                cell.style.backgroundColor = shouldBeAlive ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.3)';
+                cell.classList.toggle('cell-alive', shouldBeAlive);
+                cell.classList.toggle('cell-dead', !shouldBeAlive);
                 if (shouldBeAlive) startColorChange(cell);
                 else stopColorChange(cell);
             });
@@ -291,23 +300,22 @@ function loadPattern() {
         alert('Pattern not found.');
     }
 
-    // Check and maintain fullscreen mode
     if (isFullscreen()) {
         enterFullscreen();
     }
 }
 
-// Update the pattern select dropdown
+// Update de patroonselectie
 function updatePatternSelect() {
     const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
-    patternSelect.innerHTML = '<option value="" disabled selected>Select a pattern to load</option>';
+    patternSelect.innerHTML = '';
 
-    for (const patternName in savedPatterns) {
+    Object.keys(savedPatterns).forEach(patternName => {
         const option = document.createElement('option');
         option.value = patternName;
         option.textContent = patternName;
         patternSelect.appendChild(option);
-    }
+    });
 }
 window.addEventListener("DOMContentLoaded", () => {
     const backgroundMusic = document.getElementById('backgroundMusic');
@@ -341,5 +349,5 @@ muteButton.addEventListener('click', function() {
     }
 });
 
-// Initialize the pattern select dropdown on page load
+// Initialiseer de selectie
 updatePatternSelect();
