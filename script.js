@@ -7,6 +7,7 @@ const savePatternButton = document.getElementById('savePatternButton');
 const loadPatternButton = document.getElementById('loadPatternButton');
 const patternNameInput = document.getElementById('patternName');
 const patternSelect = document.getElementById('patternSelect');
+const randomButton = document.getElementById('randomButton');
 const rows = 50;
 const cols = 50;
 let grid = createGrid(rows, cols);
@@ -47,6 +48,13 @@ button.addEventListener("click", function() {
 resetButton.addEventListener("click", function() {
     resetGame();
 });
+
+randomButton.addEventListener("click", function() {
+    if (!isRunning) {
+        randomizeGrid();
+    }
+});
+
 
 savePatternButton.addEventListener("click", function() {
     savePattern();
@@ -103,6 +111,23 @@ function toggleCell(cell) {
         startColorChange(cell);
     }
 }
+
+// Function to randomize the grid
+function randomizeGrid() {
+    grid.forEach(row => {
+        row.forEach(cell => {
+            const isAlive = Math.random() > 0.5;
+            cell.dataset.alive = isAlive ? 'true' : 'false';
+            if (isAlive) {
+                startColorChange(cell);
+            } else {
+                stopColorChange(cell);
+                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            }
+        });
+    });
+}
+
 
 function startGame() {
     isRunning = true;
