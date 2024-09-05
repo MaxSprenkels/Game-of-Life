@@ -202,7 +202,7 @@ function startColorChange(cell) {
     cell.colorChangeInterval = setInterval(() => {
         cell.style.backgroundColor = colors[colorIndex];
         colorIndex = (colorIndex + 1) % colors.length;
-    }, 200); // 1 seconde per kleurverandering
+    }, 200);
 }
 
 
@@ -214,7 +214,7 @@ function stopColorChange(cell) {
 
 // Play sound when a cell is toggled
 function playSiuuSound() {
-    siuuSound.currentTime = 0;
+    siuuSound.currentTime = 10;
     siuuSound.play();
 }
 
