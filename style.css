@@ -92,4 +92,5 @@ select {
 }
 input[type="text"],::placeholder {
     color: white;
+    opacity: 1;
 }
