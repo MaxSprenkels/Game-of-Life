@@ -3,12 +3,35 @@ const gridContainer = document.getElementById('grid');
 const siuuSound = document.getElementById('siuuSound');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const resetButton = document.getElementById('resetButton');
+const savePatternButton = document.getElementById('savePatternButton');
+const loadPatternButton = document.getElementById('loadPatternButton');
+const patternNameInput = document.getElementById('patternName');
+const patternSelect = document.getElementById('patternSelect');
 const randomButton = document.getElementById('randomButton');
 const rows = 50;
 const cols = 50;
 let grid = createGrid(rows, cols);
-let interval; // Variable to hold the interval ID
-let isRunning = false; // Game state
+let interval;
+let isRunning = false;
+
+// Fullscreen check
+function isFullscreen() {
+    return !!document.fullscreenElement;
+}
+
+// Enter fullscreen mode
+function enterFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    }
+}
+
+// Exit fullscreen mode
+function exitFullscreen() {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+}
 
 button.addEventListener("click", function() {
     if (button.textContent === "Start") {
@@ -32,17 +55,24 @@ randomButton.addEventListener("click", function() {
     }
 });
 
+
+savePatternButton.addEventListener("click", function() {
+    savePattern();
+});
+
+loadPatternButton.addEventListener("click", function() {
+    loadPattern();
+});
+
 // Function to create the grid
 function createGrid(rows, cols) {
     const grid = [];
-    gridContainer.innerHTML = ''; // Clear any existing cells in the container
     for (let row = 0; row < rows; row++) {
         const gridRow = [];
         for (let col = 0; col < cols; col++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
-            cell.dataset.alive = 'false'; // All cells start dead
-            cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Initial background color for dead cells
+            cell.dataset.alive = 'false';
 
             cell.addEventListener('click', () => {
                 toggleCell(cell);
@@ -69,6 +99,19 @@ function resetGame() {
     });
 }
 
+// Function to toggle the cell's alive state
+function toggleCell(cell) {
+    const isAlive = cell.dataset.alive === 'true';
+    if (isAlive) {
+        cell.dataset.alive = 'false';
+        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+        stopColorChange(cell);
+    } else {
+        cell.dataset.alive = 'true';
+        startColorChange(cell);
+    }
+}
+
 // Function to randomize the grid
 function randomizeGrid() {
     grid.forEach(row => {
@@ -85,40 +128,12 @@ function randomizeGrid() {
     });
 }
 
-// Function to toggle the cell's alive state
-function toggleCell(cell) {
-    const isAlive = cell.dataset.alive === 'true';
-    if (isAlive) {
-        cell.dataset.alive = 'false';
-        cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Reset to default color for dead cells
-        stopColorChange(cell);
-    } else {
-        cell.dataset.alive = 'true';
-        startColorChange(cell);
-    }
-}
-let animationFrameId;
 
 function startGame() {
     isRunning = true;
-    runGame();
-}
-function runGame() {
-    nextGeneration();
-    animationFrameId = requestAnimationFrame(runGame);
+    interval = setInterval(nextGeneration, 500);
 }
 
-function stopGame() {
-    isRunning = false;
-    cancelAnimationFrame(animationFrameId);
-}
-// Start the game
-function startGame() {
-    isRunning = true;
-    interval = setInterval(nextGeneration, 1000); // Update every 500ms
-}
-
-// Stop the game
 function stopGame() {
     isRunning = false;
     clearInterval(interval);
@@ -129,27 +144,33 @@ function nextGeneration() {
     updateGrid(nextGridState);
 }
 
-// Correct function to calculate the next grid state
 function createNextGridState() {
     const nextGridState = [];
     for (let row = 0; row < rows; row++) {
         nextGridState[row] = [];
         for (let col = 0; col < cols; col++) {
-            const isAlive = grid[row][col].dataset.alive === 'true';
+            const cell = grid[row][col];
+            const isAlive = cell.dataset.alive === 'true';
             const neighbors = countAliveNeighbors(row, col);
 
-            // Apply Game of Life rules
             if (isAlive) {
-                nextGridState[row][col] = (neighbors === 2 || neighbors === 3);
+                if (neighbors === 2 || neighbors === 3) {
+                    nextGridState[row][col] = true;
+                } else {
+                    nextGridState[row][col] = false;
+                }
             } else {
-                nextGridState[row][col] = (neighbors === 3);
+                if (neighbors === 3) {
+                    nextGridState[row][col] = true;
+                } else {
+                    nextGridState[row][col] = false;
+                }
             }
         }
     }
     return nextGridState;
 }
 
-// Update the grid to match the next state
 function updateGrid(nextGridState) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -157,24 +178,27 @@ function updateGrid(nextGridState) {
             const shouldBeAlive = nextGridState[row][col];
             const isAlive = cell.dataset.alive === 'true';
 
-            if (shouldBeAlive && !isAlive) {
-                cell.dataset.alive = 'true';
-                startColorChange(cell);
-            } else if (!shouldBeAlive && isAlive) {
-                cell.dataset.alive = 'false';
-                stopColorChange(cell);
-                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Background color for dead cells
+            if (shouldBeAlive) {
+                if (!isAlive) {
+                    cell.dataset.alive = 'true';
+                    startColorChange(cell);
+                }
+            } else {
+                if (isAlive) {
+                    cell.dataset.alive = 'false';
+                    stopColorChange(cell);
+                    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                }
             }
         }
     }
 }
 
-// Count the number of alive neighbors for a cell
 function countAliveNeighbors(row, col) {
     const directions = [
-        [-1, -1], [-1, 0], [-1, 1], // Top-left, top, top-right
-        [0, -1],           [0, 1],  // Left,         right
-        [1, -1], [1, 0], [1, 1]    // Bottom-left, bottom, bottom-right
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],          [0, 1],
+        [1, -1], [1, 0], [1, 1]
     ];
     let count = 0;
 
@@ -193,38 +217,98 @@ function countAliveNeighbors(row, col) {
     return count;
 }
 
-// Start the color-changing effect for a cell
 function startColorChange(cell) {
     const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
     let colorIndex = 0;
 
-    // Verlaag de snelheid van kleurverandering
     cell.colorChangeInterval = setInterval(() => {
         cell.style.backgroundColor = colors[colorIndex];
         colorIndex = (colorIndex + 1) % colors.length;
-    }, 200);
+    }, 500);
 }
 
-
-// Stop the color-changing effect for a cell
 function stopColorChange(cell) {
     clearInterval(cell.colorChangeInterval);
-    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; // Restore the original background color
+    cell.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
 }
 
-// Play sound when a cell is toggled
 function playSiuuSound() {
-    siuuSound.currentTime = 10;
+    siuuSound.currentTime = 0;
     siuuSound.play();
 }
 
-// Toggle fullscreen mode
 fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+    if (!isFullscreen()) {
+        enterFullscreen();
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
+        exitFullscreen();
     }
 });
+
+function savePattern() {
+    const patternName = patternNameInput.value.trim();
+    if (!patternName) {
+        alert('Please enter a name for the pattern.');
+        return;
+    }
+
+    const gridState = grid.map(row => row.map(cell => cell.dataset.alive === 'true'));
+    const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
+    
+    savedPatterns[patternName] = gridState;
+    localStorage.setItem('savedPatterns', JSON.stringify(savedPatterns));
+
+    // Check and maintain fullscreen mode
+    if (isFullscreen()) {
+        enterFullscreen();
+    }
+
+    updatePatternSelect();
+    alert(`Pattern "${patternName}" saved!`);
+}
+
+function loadPattern() {
+    const patternName = patternSelect.value;
+    if (!patternName) {
+        alert('Please select a pattern to load.');
+        return;
+    }
+
+    const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
+    const pattern = savedPatterns[patternName];
+
+    if (pattern) {
+        grid.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+                const shouldBeAlive = pattern[rowIndex][colIndex];
+                cell.dataset.alive = shouldBeAlive ? 'true' : 'false';
+                cell.style.backgroundColor = shouldBeAlive ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.3)';
+                if (shouldBeAlive) startColorChange(cell);
+                else stopColorChange(cell);
+            });
+        });
+    } else {
+        alert('Pattern not found.');
+    }
+
+    // Check and maintain fullscreen mode
+    if (isFullscreen()) {
+        enterFullscreen();
+    }
+}
+
+// Update the pattern select dropdown
+function updatePatternSelect() {
+    const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
+    patternSelect.innerHTML = '<option value="" disabled selected>Select a pattern to load</option>';
+
+    for (const patternName in savedPatterns) {
+        const option = document.createElement('option');
+        option.value = patternName;
+        option.textContent = patternName;
+        patternSelect.appendChild(option);
+    }
+}
+
+// Initialize the pattern select dropdown on page load
+updatePatternSelect();
