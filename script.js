@@ -309,6 +309,37 @@ function updatePatternSelect() {
         patternSelect.appendChild(option);
     }
 }
+window.addEventListener("DOMContentLoaded", () => {
+    const backgroundMusic = document.getElementById('backgroundMusic');
+    backgroundMusic.volume = 0.2;
+    
+    // Audio pas starten na een gebruikersactie
+    document.getElementById('startStopButton').addEventListener('click', () => {
+        const playPromise = backgroundMusic.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('Muziek speelt!');
+            }).catch(error => {
+                console.log('Autoplay geblokkeerd. Gebruikersinteractie vereist.', error);
+            });
+        }
+    });
+});
+
+
+
+
+const muteButton = document.getElementById('muteButton');
+
+muteButton.addEventListener('click', function() {
+    if (backgroundMusic.muted) {
+        backgroundMusic.muted = false;
+        muteButton.textContent = 'Mute';
+    } else {
+        backgroundMusic.muted = true;
+        muteButton.textContent = 'Unmute';
+    }
+});
 
 // Initialize the pattern select dropdown on page load
 updatePatternSelect();
