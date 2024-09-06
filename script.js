@@ -11,24 +11,21 @@ const randomButton = document.getElementById('randomButton');
 const rows = 50;
 const cols = 50;
 
-let currentGrid = createGrid(rows, cols);  // Grid voor de huidige staat
-let nextGrid = createGrid(rows, cols);     // Grid voor de volgende staat
+let currentGrid = createGrid(rows, cols);
+let nextGrid = createGrid(rows, cols);
 let interval;
 let isRunning = false;
 
-// Controleer of fullscreen is ingeschakeld
 function isFullscreen() {
     return !!document.fullscreenElement;
 }
 
-// Volledig scherm activeren
 function enterFullscreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
     }
 }
 
-// Volledig scherm verlaten
 function exitFullscreen() {
     if (document.fullscreenElement) {
         document.exitFullscreen();
@@ -65,7 +62,7 @@ loadPatternButton.addEventListener("click", function() {
     loadPattern();
 });
 
-// Grid creëren
+// Grid maken
 function createGrid(rows, cols) {
     const grid = [];
     for (let row = 0; row < rows; row++) {
@@ -88,7 +85,7 @@ function createGrid(rows, cols) {
     return grid;
 }
 
-// Reset het spel
+// Reset de game
 function resetGame() {
     stopGame();
     currentGrid.forEach(row => {
@@ -101,7 +98,7 @@ function resetGame() {
     });
 }
 
-// Wissel de staat van de cel
+// cellen alive of dead
 function toggleCell(cell) {
     if (cell.dataset.alive === 'true') {
         cell.dataset.alive = 'false';
@@ -116,7 +113,7 @@ function toggleCell(cell) {
     }
 }
 
-// Grid randomiseren
+// Grid randome functie
 function randomizeGrid() {
     currentGrid.forEach(row => {
         row.forEach(cell => {
@@ -135,25 +132,25 @@ function randomizeGrid() {
     });
 }
 
-// Start het spel
+// Start de game
 function startGame() {
     isRunning = true;
-    interval = setInterval(nextGeneration, 850); // Verlaagde interval voor snellere updates
+    interval = setInterval(nextGeneration, 850);
 }
 
-// Stop het spel
+// Stop de game
 function stopGame() {
     isRunning = false;
     clearInterval(interval);
 }
 
-// Bereken de volgende generatie
+// Bereken de volgende gridstate
 function nextGeneration() {
     const nextGridState = createNextGridState();
     applyNextGridState(nextGridState);
 }
 
-// Creëer de volgende gridstaat
+// Maak de volgende gridstate
 function createNextGridState() {
     const nextGridState = [];
 
@@ -170,7 +167,7 @@ function createNextGridState() {
     return nextGridState;
 }
 
-// Pas de volgende gridstaat toe
+// Laat de volgende gristate zien
 function applyNextGridState(nextGridState) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -220,7 +217,7 @@ function countAliveNeighbors(row, col) {
     return count;
 }
 
-// Start de kleuraanpassing
+// Start de colorchange
 function startColorChange(cell) {
     const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
     let colorIndex = 0;
@@ -231,10 +228,10 @@ function startColorChange(cell) {
     }, 150);
 }
 
-// Stop de kleuraanpassing
+// Stop de colorchange
 function stopColorChange(cell) {
     clearInterval(cell.colorChangeInterval);
-    cell.style.backgroundColor = '';  // Reset naar CSS default
+    cell.style.backgroundColor = '';
 }
 
 // Speel geluid af
@@ -243,7 +240,6 @@ function playSiuuSound() {
     siuuSound.play();
 }
 
-// Fullscreen functionaliteit
 fullscreenBtn.addEventListener('click', () => {
     if (!isFullscreen()) {
         enterFullscreen();
@@ -262,7 +258,7 @@ function savePattern() {
 
     const gridState = currentGrid.map(row => row.map(cell => cell.dataset.alive === 'true'));
     const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
-    
+
     savedPatterns[patternName] = gridState;
     localStorage.setItem('savedPatterns', JSON.stringify(savedPatterns));
 
@@ -305,7 +301,7 @@ function loadPattern() {
     }
 }
 
-// Update de patroonselectie
+// Update het patroon
 function updatePatternSelect() {
     const savedPatterns = JSON.parse(localStorage.getItem('savedPatterns')) || {};
     patternSelect.innerHTML = '';
@@ -320,8 +316,7 @@ function updatePatternSelect() {
 window.addEventListener("DOMContentLoaded", () => {
     const backgroundMusic = document.getElementById('backgroundMusic');
     backgroundMusic.volume = 0.2;
-    
-    // Audio pas starten na een gebruikersactie
+
     document.getElementById('startStopButton').addEventListener('click', () => {
         const playPromise = backgroundMusic.play();
         if (playPromise !== undefined) {
@@ -349,5 +344,4 @@ muteButton.addEventListener('click', function() {
     }
 });
 
-// Initialiseer de selectie
 updatePatternSelect();
